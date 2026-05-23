@@ -949,8 +949,8 @@ async function refreshData() {
     state.weatherSnapshot = null;
   }
 
-  // If a signed-in user lands on an empty feed after login, seed demo signals once.
-  if (!state.status && state.token && !state.autoSeedAttempted) {
+  // If the feed is empty on first load, seed demo signals once for this session.
+  if (!state.status && !state.autoSeedAttempted) {
     state.autoSeedAttempted = true;
     try {
       const demoPayload = await fetchJson('/v1/demo/signals');
