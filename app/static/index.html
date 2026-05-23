@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CrowdFlow Command</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/styles.css?v=20260523n">
+</head>
+<body>
+  <div class="noise"></div>
+  <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+  <div id="chat-backdrop" class="chat-backdrop" aria-hidden="true"></div>
+  <div id="auth-backdrop" class="auth-backdrop" aria-hidden="true" hidden></div>
+  <main class="shell">
+    <section class="hero panel">
+      <button id="account-trigger" class="account-trigger" type="button" aria-label="Open account options">
+        <span class="account-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" role="presentation">
+            <path d="M12 12c2.8 0 5-2.2 5-5s-2.2-5-5-5-5 2.2-5 5 2.2 5 5 5zm0 2c-4.2 0-8 2.1-8 4.8V22h16v-3.2c0-2.7-3.8-4.8-8-4.8z"/>
+          </svg>
+        </span>
+        <span id="account-label" class="account-label">Account</span>
+      </button>
+      <div class="hero-heading">
+        <p class="eyebrow">Realtime stadium safety orchestration</p>
+        <h1>CrowdFlow Command</h1>
+        <p class="lede">A control surface for operators managing ingress pressure, zone saturation, and incident response across high-volume venues.</p>
+      </div>
+      <div class="hero-right">
+        <div class="hero-actions">
+          <button id="load-demo" class="primary">Load demo surge</button>
+          <button id="refresh" class="secondary">Refresh live data</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="controls panel">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%;">
+        <label class="picklist-field">
+          <span>Tenant</span>
+          <input id="tenant-id" value="league-x" autocomplete="off" spellcheck="false">
+          <div id="tenant-picklist" class="picklist-menu hidden" role="listbox" aria-label="Tenant suggestions"></div>
+        </label>
+        <label class="picklist-field">
+          <span>Stadium</span>
+          <input id="stadium-id" value="stadium-1" autocomplete="off" spellcheck="false">
+          <div id="stadium-picklist" class="picklist-menu hidden" role="listbox" aria-label="Stadium suggestions"></div>
+        </label>
+      </div>
+
+      <div class="status-pills">
+        <span id="backend-pill" class="pill">Backend: loading</span>
+        <span id="publisher-pill" class="pill">Publisher: loading</span>
+        <span id="auth-pill" class="pill">Mode: guest</span>
+      </div>
+      <div class="auth-actions">
+        <button id="login-trigger" class="secondary" type="button">Log in</button>
+        <button id="signup-trigger" class="secondary" type="button">Sign up</button>
+        <button id="guest-trigger" class="ghost" type="button">Use as guest</button>
+        <button id="logout-trigger" class="ghost hidden" type="button">Log out</button>
+      </div>
+    </section>
+
+    <section class="metrics-grid">
+      <article class="metric panel accent-critical">
+        <span class="metric-label">Highest risk</span>
+        <strong id="highest-risk">--</strong>
+        <small id="highest-zone">Awaiting feed</small>
+      </article>
+      <article class="metric panel accent-load">
+        <span class="metric-label">Total occupancy</span>
+        <strong id="total-occupancy">--</strong>
+        <small id="zone-count">0 zones online</small>
+      </article>
+      <article class="metric panel accent-flow">
+        <span class="metric-label">Net flow</span>
+        <strong id="net-flow">--</strong>
+        <small>Ingress minus egress per minute</small>
+      </article>
+    </section>
+
+    <section class="panel stadium-view-card">
+      <div class="panel-head">
+        <h2>Stadium view</h2>
+        <span class="mono">Live zone geometry</span>
+      </div>
+      <div class="stadium-view-grid">
+        <div id="stadium-map" class="stadium-map" aria-label="Stadium zone map"></div>
+        <div>
+          <div id="stadium-summary" class="chart-summary"></div>
+          <div id="stadium-weather" class="stadium-weather-grid"></div>
+          <div id="stadium-zone-strip" class="stadium-zone-strip"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="charts-grid">
+      <article class="panel chart-card">
+        <div class="panel-head">
+          <h2>Risk distribution</h2>
+          <span class="mono">Live severity mix</span>
+        </div>
+        <div id="risk-summary" class="chart-summary"></div>
+        <div class="risk-chart-wrap">
+          <div id="risk-donut" class="risk-donut" aria-label="Risk distribution chart"></div>
+          <div id="risk-legend" class="risk-legend"></div>
+        </div>
+      </article>
+
+      <article class="panel chart-card">
+        <div class="panel-head">
+          <h2>Occupancy by zone</h2>
+          <span class="mono">Capacity utilization</span>
+        </div>
+        <div id="occupancy-summary" class="chart-summary"></div>
+        <div id="occupancy-chart" class="bar-chart"></div>
+      </article>
+
+      <article class="panel chart-card">
+        <div class="panel-head">
+          <h2>Net flow trend</h2>
+          <span class="mono">Recent refresh cycles</span>
+        </div>
+        <div id="flow-summary" class="chart-summary"></div>
+        <div id="flow-chart" class="line-chart"></div>
+      </article>
+
+      <article class="panel chart-card chart-card-wide">
+        <div class="panel-head">
+          <h2>Zone risk trend</h2>
+          <span class="mono">Last 24 refresh cycles</span>
+        </div>
+        <div id="zone-risk-summary" class="chart-summary"></div>
+        <div id="zone-risk-trends" class="zone-trend-grid"></div>
+      </article>
+    </section>
+
+    <section class="content-grid">
+      <article class="panel zone-board">
+        <div class="panel-head">
+          <h2>Zone status board</h2>
+          <span id="last-updated" class="mono">No updates yet</span>
+        </div>
+        <div id="zone-list" class="zone-list"></div>
+      </article>
+
+      <aside class="panel ops-rail">
+        <div class="panel-head">
+          <h2>Hot zones</h2>
+        </div>
+        <div id="hot-zones" class="hot-zones"></div>
+        <div class="panel-head second-head">
+          <h2>Recommended actions</h2>
+        </div>
+        <div id="action-feed" class="action-feed"></div>
+      </aside>
+    </section>
+  </main>
+
+  <button id="chat-toggle" class="chat-toggle" type="button" aria-expanded="false" aria-controls="chat-widget">
+    <span class="chat-toggle-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" role="presentation">
+        <path d="M12 3C6.48 3 2 6.94 2 11.8c0 2.68 1.37 5.08 3.53 6.69L4.5 22l4.17-2.08c1.05.29 2.17.44 3.33.44 5.52 0 10-3.94 10-8.8S17.52 3 12 3zm-4 6h8a1 1 0 110 2H8a1 1 0 110-2zm0 4h5a1 1 0 110 2H8a1 1 0 110-2z"/>
+      </svg>
+    </span>
+    <span class="chat-toggle-label">Ops assistant</span>
+  </button>
+
+  <aside id="chat-widget" class="chat-widget" aria-hidden="true">
+    <div class="chat-widget-head">
+      <div>
+        <p class="eyebrow">Live assistant</p>
+        <h2>Ops assistant</h2>
+      </div>
+      <button id="chat-close" class="chat-close" type="button" aria-label="Close assistant">×</button>
+    </div>
+    <div id="chat-log" class="chat-log">
+      <article class="chat-bubble bot">
+        <strong>Assistant</strong>
+        <p>Ask about risk, occupancy, or recommended actions for the current stadium.</p>
+      </article>
+    </div>
+    <form id="chat-form" class="chat-form">
+      <input id="chat-input" type="text" placeholder="Ask: What is the highest risk zone?" maxlength="1000">
+      <button id="chat-send" type="submit" class="primary">Send</button>
+    </form>
+    <div id="chat-suggestions" class="chat-suggestions"></div>
+  </aside>
+
+  <section id="auth-modal" class="auth-modal" aria-hidden="true" hidden>
+    <div class="auth-card panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Access control</p>
+          <h2 id="auth-title">Welcome back</h2>
+        </div>
+        <button id="auth-close" class="chat-close" type="button" aria-label="Close authentication dialog">×</button>
+      </div>
+      <p id="auth-copy" class="auth-copy">Log in to persist your stadium preferences and assistant history. Guest sessions stay local and are not stored.</p>
+      <div class="auth-mode-chooser">
+        <button id="auth-mode-login" class="secondary" type="button">Log in</button>
+        <button id="auth-mode-signup" class="ghost" type="button">Sign up</button>
+      </div>
+      <p id="auth-error" class="auth-error hidden" aria-live="polite"></p>
+      <form id="auth-form" class="auth-form">
+        <label id="full-name-field" class="hidden">
+          <span>Full name</span>
+          <input id="auth-full-name" type="text" maxlength="120">
+        </label>
+        <label>
+          <span>Email</span>
+          <input id="auth-email" type="email" maxlength="255" required>
+        </label>
+        <label>
+          <span>Password</span>
+          <input id="auth-password" type="password" maxlength="255" required>
+        </label>
+        <div class="auth-buttons">
+          <button id="auth-submit" class="primary" type="submit">Log in</button>
+          <button id="auth-switch" class="ghost" type="button">Need an account? Sign up</button>
+        </div>
+      </form>
+      <button id="auth-guest" class="secondary auth-guest" type="button">Continue as guest</button>
+      <button id="auth-logout" class="ghost auth-guest hidden" type="button">Log out</button>
+    </div>
+  </section>
+  <script src="/assets/app.js?v=20260523v" defer></script>
+</body>
+</html>

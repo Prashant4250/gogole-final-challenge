@@ -1,0 +1,42 @@
+steps:
+  # 1. Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - -t
+      - gcr.io/$PROJECT_ID/crowdflow-command:$COMMIT_SHA
+      - -t
+      - gcr.io/$PROJECT_ID/crowdflow-command:latest
+      - .
+
+  # 2. Push both tags
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/crowdflow-command:$COMMIT_SHA']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/crowdflow-command:latest']
+
+  # 3. Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - crowdflow-command
+      - --image=gcr.io/$PROJECT_ID/crowdflow-command:$COMMIT_SHA
+      - --region=us-central1
+      - --platform=managed
+      - --allow-unauthenticated
+      - --port=8080
+      - --memory=512Mi
+      - --cpu=1
+      - --min-instances=0
+      - --max-instances=10
+      - --set-env-vars=CROWDFLOW_STORE_BACKEND=memory,CROWDFLOW_PUBLISHER_BACKEND=noop,CROWDFLOW_AUTH_BACKEND=sqlite
+
+images:
+  - gcr.io/$PROJECT_ID/crowdflow-command:$COMMIT_SHA
+  - gcr.io/$PROJECT_ID/crowdflow-command:latest
+
+options:
+  logging: CLOUD_LOGGING_ONLY

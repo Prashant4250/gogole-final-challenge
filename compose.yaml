@@ -1,0 +1,17 @@
+services:
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning
+
+  api:
+    build: .
+    environment:
+      CROWDFLOW_STORE_BACKEND: redis
+      CROWDFLOW_REDIS_URL: redis://redis:6379/0
+      CROWDFLOW_PUBLISHER_BACKEND: noop
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis

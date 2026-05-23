@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment & secrets
+.env
+*.env
+service-account.json
+*-credentials.json
+
+# Local database (SQLite dev file — not for production)
+crowdflow_auth.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode/
